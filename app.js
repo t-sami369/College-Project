@@ -18,7 +18,7 @@ mongoose.connect(process.env.mongo_connect,{}).then(()=>{
 });
 app.use("/users",userRouter);
 app.use("/events",eventRouter);
-app.use("/utilities",recommendationRouter);
+app.use("/api",recommendationRouter);
 
 app.listen(8000,()=>{
   console.log("Server started successfully!");
