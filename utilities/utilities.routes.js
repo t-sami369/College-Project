@@ -1,6 +1,6 @@
 const express = require("express");
-const auth = require("../../middlewares/auth");
-const { getEventRecommendations } = require("../../utilities/contentRecommendation");
+const auth = require("../middlewares/auth");
+const { getEventRecommendations } = require("../utilities/contentRecommendation");
 
 const recommendationRouter = express.Router();
 
