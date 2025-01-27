@@ -10,6 +10,8 @@ const recommender = new ContentBasedRecommender({
 
 async function getEventRecommendations(userId) {
     try {
+        const currentDate = new Date();
+        
         // 1. Get user's liked events
         const likedEvents = await UserChoice.aggregate([
             {
@@ -26,26 +28,25 @@ async function getEventRecommendations(userId) {
                     as: "eventDetails"
                 }
             },
-            {
-                $unwind: "$eventDetails"
-            }
+            { $unwind: "$eventDetails" }
         ]);
 
-        // 2. Get all events for training
-        const allEvents = await Event.find({});
-        
-        // 3. Prepare documents for training
-        const documents = allEvents.map(event => ({
+        // 2. Get upcoming events
+        const upcomingEvents = await Event.find({
+            date: { $gt: currentDate },
+            status: { $in: ['active', 'pending'] }
+        });
+
+        // 3. Prepare and train recommender
+        const documents = upcomingEvents.map(event => ({
             id: event._id.toString(),
             content: `${event.name} ${event.description || ''}`
         }));
-
-        // 4. Train recommender
         recommender.train(documents);
 
-        // 5. Get recommendations based on each liked event
-        const recommendations = [];
+        // 4. Get and process recommendations
         const likedEventIds = new Set(likedEvents.map(e => e.eventDetails._id.toString()));
+        let allRecommendations = [];
 
         for (const likedEvent of likedEvents) {
             const similar = recommender.getSimilarDocuments(
@@ -53,13 +54,29 @@ async function getEventRecommendations(userId) {
                 0,
                 5
             );
-            
-            // Filter out already liked events
-            const filtered = similar.filter(rec => !likedEventIds.has(rec.id));
-            recommendations.push(...filtered);
+            allRecommendations.push(...similar);
         }
 
-        return recommendations;
+        // 5. Calculate final scores and sort
+        const scoredRecommendations = allRecommendations
+            .filter(rec => !likedEventIds.has(rec.id))
+            .map(rec => {
+                const event = upcomingEvents.find(e => e._id.toString() === rec.id);
+                return {
+                    ...rec,
+                    event,
+                    finalScore: rec.score * (event.status === 'active' ? 1.5 : 1.0)
+                };
+            })
+            .sort((a, b) => b.finalScore - a.finalScore)
+            .slice(0, 10)
+            .map(({ event, finalScore }) => ({
+                event,
+                score: finalScore
+            }));
+
+        return scoredRecommendations;
+
     } catch (error) {
         console.error("Error getting recommendations:", error);
         throw error;
