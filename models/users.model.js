@@ -22,7 +22,13 @@ const userSchema= new mongoose.Schema({
     type: Date,
     required: true,
     trim: true,
- }
+ },
+  // Add role field to userSchema
+  role: {
+    type: String,
+    enum: ['user', 'organizer', 'admin'],
+    default: 'user'
+  }
 },
 {
   timestamps:true
