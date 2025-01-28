@@ -10,12 +10,16 @@ recommendationRouter.use(auth);
 // Get personalized event recommendations
 recommendationRouter.get("/events", async (req, res) => {
     try {
+
         const recommendations = await getEventRecommendations(req.user.id);
+
         res.status(200).json({
             status: "success",
             recommendations
         });
     } catch (error) {
+        console.error("Error:", error); // Debugging error
+
         res.status(400).json({
             status: "failed",
             error: error.message
