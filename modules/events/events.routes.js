@@ -1,6 +1,6 @@
 const express=require("express");
 const createEvent = require("./controllers/createEvent");
-const auth = require("../../middlewares/auth");
+const {auth,roleAuth} = require("../../middlewares/auth");
 const deleteEvent = require("./controllers/deleteEvent");
 const updateEvent = require("./controllers/updateEvent");
 const getEvent = require("./controllers/getEvents");
@@ -11,8 +11,8 @@ eventRouter.get("/",getEvent);
 
 //protected routes for event management
 eventRouter.use(auth);
-eventRouter.post("/create",createEvent);
-eventRouter.delete("/delete",deleteEvent);
-eventRouter.patch("/update",updateEvent);
+eventRouter.post("/create", roleAuth(['organizer','admin']), createEvent);
+eventRouter.delete("/delete", roleAuth(['organizer','admin']), deleteEvent);
+eventRouter.patch("/update", roleAuth(['organizer','admin']), updateEvent);
 
 module.exports=eventRouter;

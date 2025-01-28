@@ -5,6 +5,8 @@ const userModel=require("./models/users.model");
 const mongoose= require("mongoose");
 const userRouter = require("./modules/users/users.routes");
 const eventRouter = require("./modules/events/events.routes");
+
+const adminRouter = require("./modules/admin/admin.routes");
 require("dotenv").config();
 
 mongoose.connect(process.env.mongo_connect,{}).then(()=>{
@@ -14,6 +16,7 @@ mongoose.connect(process.env.mongo_connect,{}).then(()=>{
 });
 app.use("/users",userRouter);
 app.use("/events",eventRouter);
+app.use("/admin", adminRouter);
 
 app.listen(8000,()=>{
   console.log("Server started successfully!");

@@ -3,7 +3,7 @@ const bcrypt=require("bcrypt");
 
 const userRegister=async(req,res)=>{
    const Users=mongoose.model("users");
-   const {name,email,password,contact,dateOfBirth} = req.body;
+   const {name,email,password,contact,dateOfBirth,role} = req.body;
    //logic for data creation
    const encPassword=await bcrypt.hash(password,10);
    try{
@@ -12,7 +12,8 @@ const userRegister=async(req,res)=>{
       email, 
       password: encPassword,
       contact,
-      dateOfBirth
+      dateOfBirth,
+      role
      });
    }catch(e){
      res.status(400).json({
