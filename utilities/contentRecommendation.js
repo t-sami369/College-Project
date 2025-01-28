@@ -4,50 +4,66 @@ const Event = require('../models/events.model');
 const ContentBasedRecommender = require('content-based-recommender');
 
 const recommender = new ContentBasedRecommender({
-    minScore: 0.4,
+    minScore: 0.09,
     maxSimilarDocuments: 100
 });
 
 async function getEventRecommendations(userId) {
     try {
-        const currentDate = new Date();
-        
+    
         // 1. Get user's liked events
         const likedEvents = await UserChoice.aggregate([
             {
                 $match: {
-                    userId: new mongoose.Types.ObjectId(userId),
+                    userId: userId, 
                     choice: "like"
                 }
             },
             {
                 $lookup: {
                     from: "events",
-                    localField: "eventId",
-                    foreignField: "_id",
-                    as: "eventDetails"
-                }
+                    let: { eventId: "$eventId" },
+                    pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $eq: ["$_id", { $toObjectId: "$$eventId" }]
+                                },
+                      
+                            }
+                        },
+                  { $project: { __v: 0 } } // Removes unnecessary fields from events
+                ],
+                as: "eventDetails"
+              }
+            
             },
-            { $unwind: "$eventDetails" }
+            { $unwind: "$eventDetails" },
+            {
+                $project: {  // Only returns needed fields
+                    _id: 1,
+                    eventDetails: 1
+                }
+            }
         ]);
+        
 
         // 2. Get upcoming events
         const upcomingEvents = await Event.find({
-            date: { $gt: currentDate },
-            status: { $in: ['active', 'pending'] }
+            status: { $in: ['active', 'pending', 'completed'] }
         });
+
 
         // 3. Prepare and train recommender
         const documents = upcomingEvents.map(event => ({
             id: event._id.toString(),
-            content: `${event.name} ${event.description || ''}`
+            content: event.title || ''
         }));
         recommender.train(documents);
 
         // 4. Get and process recommendations
         const likedEventIds = new Set(likedEvents.map(e => e.eventDetails._id.toString()));
         let allRecommendations = [];
-
         for (const likedEvent of likedEvents) {
             const similar = recommender.getSimilarDocuments(
                 likedEvent.eventDetails._id.toString(),
