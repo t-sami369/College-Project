@@ -33,7 +33,13 @@ const userSchema= new mongoose.Schema({
     type: String,
     enum: ['user', 'organizer', 'admin'],
     default: 'user'
-  }
+  },
+  
+  // Added isLoggedIn field to userSchema
+  isLoggedIn: {
+    type: Boolean,
+    default: false
+  }  
 },
 {
   timestamps:true
