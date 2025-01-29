@@ -14,11 +14,6 @@ const userSchema= new mongoose.Schema({
     type:String,
     required:[true,"Password is required!"]
   },
-  role: { 
-    type: String,
-    enum: ['user', 'organizer', 'admin'], 
-    default: 'user' 
-  },
   contact:{
     type:String,
     required:[true,"Phone number is required!"]
