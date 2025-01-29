@@ -5,7 +5,7 @@ const { getEventRecommendations } = require("../utilities/contentRecommendation"
 const recommendationRouter = express.Router();
 
 // Protected recommendation routes
-recommendationRouter.use(auth,roleAuth(['organizer','admin']));
+recommendationRouter.use(auth,roleAuth(['organizer','admin', 'user']));
 
 // Get personalized event recommendations
 recommendationRouter.get("/events", async (req, res) => {
