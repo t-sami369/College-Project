@@ -5,6 +5,7 @@ const deleteEvent = require("./controllers/deleteEvent");
 const updateEvent = require("./controllers/updateEvent");
 const getEvent = require("./controllers/getEvents");
 
+
 const eventRouter = express.Router();
 eventRouter.get("/",getEvent);
 
