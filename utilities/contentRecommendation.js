@@ -44,13 +44,14 @@ async function getEventRecommendations(userId, userCategory = null) {
             }
         ]);
 
-        // 2. Get upcoming events
+        // 2. Get upcoming events for users with liked events
         const upcomingEvents = await Event.find({
-            status: { $in: ['active', 'pending', 'completed'] }
+            status: { $in: ['active', 'pending','completed'] }
         });
 
         // Handle new users with no liked events
         if (likedEvents.length === 0) {
+
             if (!userCategory) {
                 throw new Error('Category required for new users');
             }
@@ -73,16 +74,17 @@ async function getEventRecommendations(userId, userCategory = null) {
             const similar = recommender.getSimilarDocuments('USER_CATEGORY', 0.1, 10);
 
             return similar
-                .filter(rec => rec.id !== 'USER_CATEGORY')
-                .map(rec => {
-                    const event = upcomingEvents.find(e => e._id.toString() === rec.id);
-                    return {
-                        event,
-                        score: rec.score * (event.status === 'active' ? 1.5 : 1.0)
-                    };
-                })
-                .filter(rec => rec.event)
-                .sort((a, b) => b.score - a.score);
+            .filter(rec => rec.id !== 'USER_CATEGORY')
+            .map(rec => {
+                const event = upcomingEvents.find(e => e._id.toString() === rec.id);
+                return {
+                    event,
+                    score: rec.score * (event.status === 'active' ? 1.5 : 1.0)
+                };
+            })
+            .filter(rec => rec.event)
+            .filter(rec => rec.event.status !== 'completed')
+            .sort((a, b) => b.score - a.score);
         }
 
         // Existing user logic remains unchanged
@@ -114,6 +116,7 @@ async function getEventRecommendations(userId, userCategory = null) {
                     score: rec.score * (event.status === 'active' ? 1.5 : 1.0)
                 };
             })
+            .filter(rec => rec.event.status !== 'completed')
             .sort((a, b) => b.score - a.score)
             .slice(0, 10);
 
