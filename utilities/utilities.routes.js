@@ -1,11 +1,11 @@
 const express = require("express");
-const auth = require("../middlewares/auth");
+const {auth,roleAuth} = require("../middlewares/auth");
 const { getEventRecommendations } = require("../utilities/contentRecommendation");
 
 const recommendationRouter = express.Router();
 
 // Protected recommendation routes
-recommendationRouter.use(auth);
+recommendationRouter.use(auth,roleAuth(['organizer','admin']));
 
 // Get personalized event recommendations
 recommendationRouter.get("/events", async (req, res) => {
