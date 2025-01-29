@@ -1,4 +1,5 @@
 const Event=require("../../../models/events.model");
+const { sendNewEventNotification } = require('../../../utilities/notificationService');
 
 const createEvent =async(req,res)=>{
   
@@ -10,6 +11,10 @@ const createEvent =async(req,res)=>{
       date,
       organizer:req.user.id
     });
+
+    // Send notification for new event
+    await sendNewEventNotification(newEvent);
+  
     res.status(200).json({
       status:"success",
       message:"Event created successfully!",
