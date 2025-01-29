@@ -35,7 +35,7 @@ const roleAuth = (roles) => {
     }
     const token = authorizationHeader.split("Bearer ")[1];
     try {
-      const checkToken = jwt.verify(token, process.env.JWT_SECRET);
+      const checkToken = jwt.verify(token, process.env.jwt_salt);
       if (!roles.includes(checkToken.role)) {
         return res.status(403).json({
           status: "failed",
