@@ -41,6 +41,11 @@ const userLogin=async(req,res)=>{
         message: "User logged in successfully.",
         accessToken: accessToken,
       });
+       
+       // Setting isLoggedIn to true
+        getUser.isLoggedIn = true;
+        await getUser.save();
+
      }catch(e){
         res.status(400).json({
             status:"failed",
