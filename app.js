@@ -9,6 +9,7 @@ const adminRouter = require("./modules/admin/admin.routes");
 //Utility routes
 const recommendationRouter = require("./utilities/utilities.routes");
 const { scheduleReminders } = require('./utilities/notificationService');
+const notificationRoutes = require('./utilities/notification.routes');
 
 require("dotenv").config();
 
@@ -22,6 +23,7 @@ app.use("/users", userRouter);
 app.use("/events", eventRouter);
 app.use("/admin", adminRouter);
 app.use("/api",recommendationRouter);
+app.use('/api/notifications', notificationRoutes);
 
 
 // Start reminder service
