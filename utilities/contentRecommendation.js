@@ -8,9 +8,8 @@ const recommender = new ContentBasedRecommender({
     maxSimilarDocuments: 100
 });
 
-async function getEventRecommendations(userId) {
+async function getEventRecommendations(userId, userCategory = null) {
     try {
-    
         // 1. Get user's liked events
         const likedEvents = await UserChoice.aggregate([
             {
@@ -24,74 +23,102 @@ async function getEventRecommendations(userId) {
                     from: "events",
                     let: { eventId: "$eventId" },
                     pipeline: [
-                    {
-                        $match: {
-                            $expr: {
-                                $eq: ["$_id", { $toObjectId: "$$eventId" }]
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$_id", { $toObjectId: "$$eventId" }]
                                 },
-                      
                             }
                         },
-                  { $project: { __v: 0 } } // Removes unnecessary fields from events
-                ],
-                as: "eventDetails"
-              }
-            
+                        { $project: { __v: 0 } }
+                    ],
+                    as: "eventDetails"
+                }
             },
             { $unwind: "$eventDetails" },
             {
-                $project: {  // Only returns needed fields
+                $project: {
                     _id: 1,
                     eventDetails: 1
                 }
             }
         ]);
-        
 
-        // 2. Get upcoming events
+        // 2. Get upcoming events for users with liked events
         const upcomingEvents = await Event.find({
-            status: { $in: ['active', 'pending', 'completed'] }
+            status: { $in: ['active', 'pending','completed'] }
         });
 
+        // Handle new users with no liked events
+        if (likedEvents.length === 0) {
 
-        // 3. Prepare and train recommender
+            if (!userCategory) {
+                throw new Error('Category required for new users');
+            }
+
+            // Create training data with events and user's category
+            const documents = upcomingEvents.map(event => ({
+                id: event._id.toString(),
+                content: [event.title, event.description].join(' ') // Use more content for better recommendations
+            }));
+            
+            // Add user's category as a document
+            documents.push({
+                id: 'USER_CATEGORY',
+                content: userCategory
+            });
+
+            recommender.train(documents);
+
+            // Get recommendations based on user's category
+            const similar = recommender.getSimilarDocuments('USER_CATEGORY', 0.1, 10);
+
+            return similar
+            .filter(rec => rec.id !== 'USER_CATEGORY')
+            .map(rec => {
+                const event = upcomingEvents.find(e => e._id.toString() === rec.id);
+                return {
+                    event,
+                    score: rec.score * (event.status === 'active' ? 1.5 : 1.0)
+                };
+            })
+            .filter(rec => rec.event)
+            .filter(rec => rec.event.status !== 'completed')
+            .sort((a, b) => b.score - a.score);
+        }
+
+        // Existing user logic remains unchanged
         const documents = upcomingEvents.map(event => ({
             id: event._id.toString(),
-            content: event.title || ''
+            content: [event.title, event.description].join(' ')
         }));
+        
         recommender.train(documents);
 
-        // 4. Get and process recommendations
         const likedEventIds = new Set(likedEvents.map(e => e.eventDetails._id.toString()));
         let allRecommendations = [];
+        
         for (const likedEvent of likedEvents) {
             const similar = recommender.getSimilarDocuments(
                 likedEvent.eventDetails._id.toString(),
-                0,
+                0.1,
                 5
             );
             allRecommendations.push(...similar);
         }
 
-        // 5. Calculate final scores and sort
-        const scoredRecommendations = allRecommendations
+        return allRecommendations
             .filter(rec => !likedEventIds.has(rec.id))
             .map(rec => {
                 const event = upcomingEvents.find(e => e._id.toString() === rec.id);
                 return {
-                    ...rec,
                     event,
-                    finalScore: rec.score * (event.status === 'active' ? 1.5 : 1.0)
+                    score: rec.score * (event.status === 'active' ? 1.5 : 1.0)
                 };
             })
-            .sort((a, b) => b.finalScore - a.finalScore)
-            .slice(0, 10)
-            .map(({ event, finalScore }) => ({
-                event,
-                score: finalScore
-            }));
-
-        return scoredRecommendations;
+            .filter(rec => rec.event.status !== 'completed')
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10);
 
     } catch (error) {
         console.error("Error getting recommendations:", error);

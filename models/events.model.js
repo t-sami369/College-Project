@@ -18,7 +18,7 @@ const eventSchema= new mongoose.Schema({
         ref: "users", // Reference to the user (organizer)
         required: true,
       },
-      // Add status field to eventSchema
+      // Adding status field to eventSchema
       status: {
         type: String,
         enum: ['pending', 'active', 'completed'],
