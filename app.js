@@ -5,6 +5,12 @@ const mongoose = require("mongoose");
 const userRouter = require("./modules/users/users.routes");
 const eventRouter = require("./modules/events/events.routes");
 const adminRouter = require("./modules/admin/admin.routes");
+const cors = require("cors");
+app.use(cors({
+    origin: "http://localhost:3000", 
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  }));
 
 //Utility routes
 const recommendationRouter = require("./utilities/utilities.routes");
