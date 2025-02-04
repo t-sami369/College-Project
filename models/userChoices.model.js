@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 const userChoiceSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "users",
     required: true
   },
   eventId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "events",
     required: true
   },
