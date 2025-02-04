@@ -40,6 +40,11 @@ const userLogin=async(req,res)=>{
         status: "success",
         message: "User logged in successfully.",
         accessToken: accessToken,
+        user: {
+          id: getUser._id,
+          email: getUser.email,
+          role: getUser.role
+      }
       });
        
        // Setting isLoggedIn to true
