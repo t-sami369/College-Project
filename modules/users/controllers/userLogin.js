@@ -42,6 +42,7 @@ const userLogin=async(req,res)=>{
         accessToken: accessToken,
         user: {
           id: getUser._id,
+          name: getUser.name,
           email: getUser.email,
           role: getUser.role
       }
