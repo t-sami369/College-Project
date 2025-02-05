@@ -27,7 +27,7 @@ const eventSchema = new mongoose.Schema(
     },
     image: {
       type: String, // URL of the image
-      required: false,
+      default: null,
     },
     attendees: [
       {
