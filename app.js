@@ -30,6 +30,7 @@ app.use("/events", eventRouter);
 app.use("/admin", adminRouter);
 app.use("/api",recommendationRouter);
 app.use('/api/notifications', notificationRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Start reminder service
