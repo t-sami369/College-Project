@@ -11,7 +11,8 @@ const createEvent =async(req,res)=>{
       title,
       description,
       date,
-      organizer:req.user.id
+      organizer:req.user.id,
+      image: req.file ? `/uploads/events/${req.file.filename}` : null
     });
 
     // Create notifications for all users
