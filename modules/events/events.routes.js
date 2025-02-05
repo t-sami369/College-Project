@@ -6,7 +6,7 @@ const updateEvent = require("./controllers/updateEvent");
 const getEvent = require("./controllers/getEvents");
 const registerEvent = require("./controllers/registerEvent");
 const rateEvent = require("./controllers/rateEvent");
-
+const upload = require('../../middlewares/uploadMiddleware');
 
 const eventRouter = express.Router();
 eventRouter.get("/",getEvent);
@@ -14,9 +14,9 @@ eventRouter.get("/",getEvent);
 
 //protected routes for event management
 eventRouter.use(auth);
-eventRouter.post("/create", roleAuth(['organizer','admin']), createEvent);
+eventRouter.post("/create", roleAuth(['organizer','admin']), upload.single('image'), createEvent);
 eventRouter.delete("/delete", roleAuth(['organizer','admin']), deleteEvent);
-eventRouter.patch("/update", roleAuth(['organizer','admin']), updateEvent);
+eventRouter.patch("/update", roleAuth(['organizer','admin']), upload.single('image'), updateEvent);
 eventRouter.post("/register", auth, registerEvent);
 eventRouter.post("/rate", auth, rateEvent);
 
