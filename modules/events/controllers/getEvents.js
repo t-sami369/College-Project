@@ -15,4 +15,22 @@ const getEvents = async (req, res) => {
   }
 };
 
-module.exports = getEvents;
+const getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).populate(
+      "organizer",
+      "name email"
+    );
+    res.status(200).json({
+      status: "success",
+      event,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "failed",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {getEvents, getEventById};
