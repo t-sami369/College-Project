@@ -6,7 +6,7 @@ const Event = require('../models/events.model');
 
 // Get all notifications for logged in user
 
-router.get('/my', auth, roleAuth(['users', 'admin', 'organizer']), async (req, res) => {
+router.get('/my', auth, roleAuth(['user', 'admin', 'organizer']), async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user.id })
       .populate({
@@ -28,7 +28,7 @@ router.get('/my', auth, roleAuth(['users', 'admin', 'organizer']), async (req, r
 });
 
 // Get unread notifications count
-router.get('/unread/count', auth, roleAuth(['users', 'admin', 'organizer']), async (req, res) => {
+router.get('/unread/count', auth, roleAuth(['user', 'admin', 'organizer']), async (req, res) => {
   try {
     const count = await Notification.countDocuments({
       userId: req.user.id,
@@ -48,7 +48,7 @@ router.get('/unread/count', auth, roleAuth(['users', 'admin', 'organizer']), asy
 });
 
 // Mark notification as read
-router.patch('/:notificationId/read', auth, roleAuth(['users', 'admin', 'organizer']), async (req, res) => {
+router.patch('/:notificationId/read', auth, roleAuth(['user', 'admin', 'organizer']), async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
       {
